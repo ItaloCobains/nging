@@ -23,6 +23,26 @@ function engine.set_draw_color(r, g, b, a) end
 ---@param h number
 function engine.draw_rect(x, y, w, h) end
 
+---@param scancode number SDL scancode
+---@return boolean
+function engine.is_key_down(scancode) end
+
+---@return number x, number y
+function engine.get_mouse_pos() end
+
+---Key constants
+---@class engineKeys
+---@field W number
+---@field A number
+---@field S number
+---@field D number
+---@field UP number
+---@field DOWN number
+---@field LEFT number
+---@field RIGHT number
+---@field SPACE number
+engine.keys = {}
+
 ---Called every frame by the C loop.
 ---@param dt number
 function engine.update(dt) end
