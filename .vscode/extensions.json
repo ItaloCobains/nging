@@ -1,13 +1,11 @@
 {
   "recommendations": [
+    "llvm-vs-code-extensions.vscode-clangd",
     "ms-vscode.cpptools",
-    "ms-vscode.cpptools-extension-pack",
     "ms-vscode.cmake-tools",
     "twxs.cmake",
     "sumneko.lua",
     "vadimcn.vscode-lldb",
-    "ms-vscode.makefile-tools",
-    "eamodio.gitlens",
-    "GitHub.copilot"
+    "eamodio.gitlens"
   ]
 }

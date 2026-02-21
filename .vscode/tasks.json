@@ -8,15 +8,15 @@
       "args": [
         "-B",
         "build",
-        "-G",
-        "Ninja",
         "-DCMAKE_BUILD_TYPE=Debug",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$cmake"],
+      "problemMatcher": [
+        "$cmake"
+      ],
       "group": {
         "kind": "build",
         "isDefault": false
@@ -26,26 +26,43 @@
       "label": "cmake: build",
       "type": "shell",
       "command": "cmake",
-      "args": ["--build", "build", "--", "-j4"],
+      "args": [
+        "--build",
+        "build",
+        "--",
+        "-j4"
+      ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "dependsOn": ["cmake: configure"]
+      "dependsOn": [
+        "cmake: configure"
+      ]
     },
     {
       "label": "cmake: build (verbose)",
       "type": "shell",
       "command": "cmake",
-      "args": ["--build", "build", "--", "VERBOSE=1", "-j4"],
+      "args": [
+        "--build",
+        "build",
+        "--",
+        "VERBOSE=1",
+        "-j4"
+      ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        "$gcc"
+      ],
       "group": {
         "kind": "build",
         "isDefault": false
@@ -55,7 +72,10 @@
       "label": "cmake: clean",
       "type": "shell",
       "command": "rm",
-      "args": ["-rf", "build"],
+      "args": [
+        "-rf",
+        "build"
+      ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -75,7 +95,9 @@
         "kind": "test",
         "isDefault": true
       },
-      "dependsOn": ["cmake: build"]
+      "dependsOn": [
+        "cmake: build"
+      ]
     }
   ]
 }

@@ -1,0 +1,10 @@
+CompileFlags:
+  Add:
+    - -Wall
+    - -Wextra
+    - -Wpedantic
+  Remove:
+    - -fsanitize=*
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None

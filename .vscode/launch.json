@@ -2,7 +2,16 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C Debug (GDB)",
+      "name": "Debug nging (CodeLLDB)",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/nging",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "cmake: build"
+    },
+    {
+      "name": "C Debug (Linux GDB)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/nging",
@@ -13,30 +22,9 @@
       "externalConsole": false,
       "MIMode": "gdb",
       "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
+        { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true },
+        { "description": "Set Disassembly Flavor to Intel", "text": "-gdb-set disassembly-flavor intel", "ignoreFailures": true }
       ],
-      "preLaunchTask": "cmake: build",
-      "miDebuggerPath": "/usr/bin/gdb"
-    },
-    {
-      "name": "Run Program",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/nging",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "externalConsole": false,
-      "MIMode": "gdb",
       "preLaunchTask": "cmake: build",
       "miDebuggerPath": "/usr/bin/gdb"
     }

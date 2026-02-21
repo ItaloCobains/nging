@@ -5,6 +5,16 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Symlink compile_commands.json to project root for clangd (Go to Definition)
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_SOURCE_DIR}/compile_commands.json
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
+endif()
+
 # -- Dependencies via pkg-config --
 
 find_package(PkgConfig REQUIRED)
@@ -30,6 +40,16 @@ target_include_directories(nging PRIVATE
     ${SDL2_TTF_INCLUDE_DIRS}
     ${SDL2_MIXER_INCLUDE_DIRS}
     ${LUA_INCLUDE_DIRS}
+)
+
+# -- Link directories (so linker finds libs, e.g. on macOS Homebrew) --
+
+target_link_directories(nging PRIVATE
+    ${SDL2_LIBRARY_DIRS}
+    ${SDL2_IMAGE_LIBRARY_DIRS}
+    ${SDL2_TTF_LIBRARY_DIRS}
+    ${SDL2_MIXER_LIBRARY_DIRS}
+    ${LUA_LIBRARY_DIRS}
 )
 
 # -- Link libraries --
