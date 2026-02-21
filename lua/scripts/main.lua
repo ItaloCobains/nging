@@ -12,5 +12,7 @@ local game = require("scripts.game")
 engine.log("nging engine started")
 engine.log(string.format("Loading '%s' v%s", game.title, game.version))
 
+engine.set_font("/System/Library/Fonts/Menlo.ttc", 18)
+
 engine.update = game.update
 engine.draw = game.draw

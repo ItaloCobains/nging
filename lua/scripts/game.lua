@@ -85,7 +85,20 @@ function game.aabb(x1, y1, w1, h1, x2, y2, w2, h2)
 end
 
 function game.draw()
-  engine.clear(30, 30, 30, 255)
+  engine.clear(20, 20, 35, 255)
+
+  engine.set_draw_color(30, 30, 50, 255)
+  for x = 0, 800, 50 do
+    engine.draw_rect(x, 0, 1, 600)
+  end
+  for y = 0, 600, 50 do
+    engine.draw_rect(0, y, 800, 1)
+  end
+
+  engine.set_draw_color(50, 50, 80, 255)
+  for i = 2, 5 do
+    engine.draw_rect_outline(i, i, 800 - i * 2, 600 - i * 2)
+  end
 
   player.draw()
   bullets.draw()
@@ -95,17 +108,30 @@ function game.draw()
 end
 
 function game.draw_ui()
-  engine.set_draw_color(100, 255, 100, 255)
-  local hp_bar_width = player.hp * 30
-  engine.draw_rect(10, 10, hp_bar_width, 20)
+  engine.set_draw_color(255, 255, 255, 255)
+  engine.draw_text("HP:", 10, 12)
 
-  engine.set_draw_color(100, 100, 255, 255)
-  local score_bar_width = math.min(game.score * 5, 200)
-  engine.draw_rect(10, 40, score_bar_width, 20)
+  for i = 0, 2 do
+    if i < player.hp then
+      engine.set_draw_color(0, 200, 0, 255)
+    else
+      engine.set_draw_color(50, 50, 50, 255)
+    end
+    engine.draw_rect(45 + i * 22, 10, 18, 18)
+  end
+
+  engine.set_draw_color(200, 200, 200, 255)
+  engine.draw_text("SCORE: " .. game.score, 10, 40)
 
   if game.game_over then
-    engine.set_draw_color(255, 0, 0, 255)
-    engine.draw_rect(350, 280, 100, 40)
+    engine.set_draw_color(0, 0, 0, 160)
+    engine.draw_rect(240, 240, 320, 120)
+
+    engine.set_draw_color(255, 60, 60, 255)
+    engine.draw_text("GAME OVER", 300, 260)
+
+    engine.set_draw_color(220, 220, 220, 255)
+    engine.draw_text("Press ESC to quit", 260, 310)
   end
 end
 

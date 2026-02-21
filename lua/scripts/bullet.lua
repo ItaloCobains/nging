@@ -32,9 +32,23 @@ function bullets.update(dt)
 end
 
 function bullets.draw()
-  engine.set_draw_color(255, 255, 50, 255)
   for _, bullet in ipairs(bullets.list) do
-    engine.draw_rect(math.floor(bullet.x), math.floor(bullet.y), bullets.width, bullets.height)
+    local bx = math.floor(bullet.x)
+    local by = math.floor(bullet.y)
+
+    local w, h
+    if math.abs(bullet.dx) >= math.abs(bullet.dy) then
+      w, h = 14, 4
+    else
+      w, h = 4, 14
+    end
+
+    local glow_offset = 4
+    engine.set_draw_color(255, 140, 0, 80)
+    engine.draw_rect(bx - glow_offset, by - glow_offset, w + glow_offset * 2, h + glow_offset * 2)
+
+    engine.set_draw_color(255, 180, 0, 255)
+    engine.draw_rect(bx - (w - bullets.width) / 2, by - (h - bullets.height) / 2, w, h)
   end
 end
 

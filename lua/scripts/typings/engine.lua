@@ -23,6 +23,21 @@ function engine.set_draw_color(r, g, b, a) end
 ---@param h number
 function engine.draw_rect(x, y, w, h) end
 
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function engine.draw_rect_outline(x, y, w, h) end
+
+---@param path string
+---@param size number
+function engine.set_font(path, size) end
+
+---@param text string
+---@param x number
+---@param y number
+function engine.draw_text(text, x, y) end
+
 ---@param scancode number SDL scancode
 ---@return boolean
 function engine.is_key_down(scancode) end

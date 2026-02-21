@@ -40,9 +40,33 @@ function enemies.update(dt, px, py)
 end
 
 function enemies.draw()
-  engine.set_draw_color(220, 50, 50, 255)
   for _, enemy in ipairs(enemies.list) do
-    engine.draw_rect(math.floor(enemy.x), math.floor(enemy.y), enemies.width, enemies.height)
+    local ex = math.floor(enemy.x)
+    local ey = math.floor(enemy.y)
+
+    -- Left antenna
+    engine.set_draw_color(200, 40, 40, 255)
+    engine.draw_rect(ex + 4, ey - 5, 3, 6)
+
+    -- Right antenna
+    engine.set_draw_color(200, 40, 40, 255)
+    engine.draw_rect(ex + 15, ey - 5, 3, 6)
+
+    -- Head
+    engine.set_draw_color(220, 60, 60, 255)
+    engine.draw_rect(ex + 5, ey + 0, 12, 8)
+
+    -- Left eye
+    engine.set_draw_color(255, 220, 50, 255)
+    engine.draw_rect(ex + 5, ey + 2, 4, 4)
+
+    -- Right eye
+    engine.set_draw_color(255, 220, 50, 255)
+    engine.draw_rect(ex + 13, ey + 2, 4, 4)
+
+    -- Body
+    engine.set_draw_color(200, 40, 40, 255)
+    engine.draw_rect(ex + 2, ey + 6, 18, 12)
   end
 end
 
