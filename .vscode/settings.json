@@ -1,11 +1,12 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "ms-vscode.cpptools",
-  "editor.rulers": [80, 120],
+  "editor.rulers": [
+    80,
+    120
+  ],
   "files.associations": {
     "*.h": "c"
   },
-
   // clangd: Go to Definition nas libs (SDL2, Lua, etc.) via compile_commands.json
   "C_Cpp.intelliSenseEngine": "disabled",
   "clangd.arguments": [
@@ -14,7 +15,6 @@
     "--header-insertion=never"
   ],
   "clangd.path": "clangd",
-
   // Fallback C/C++ (quando clangd não estiver ativo)
   "C_Cpp.default.cStandard": "c11",
   "C_Cpp.default.cppStandard": "c++17",
@@ -28,8 +28,9 @@
   ],
   "C_Cpp.default.compilerPath": "/usr/bin/clang",
   "C_Cpp.default.intelliSenseMode": "macos-clang-arm64",
-  "C_Cpp.default.macFrameworkPath": ["/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"],
-
+  "C_Cpp.default.macFrameworkPath": [
+    "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
+  ],
   // CMake
   "cmake.sourceDirectory": "${workspaceFolder}",
   "cmake.buildDirectory": "${workspaceFolder}/build",
@@ -37,10 +38,23 @@
   "cmake.configureEnvironment": {
     "CMAKE_BUILD_TYPE": "Debug"
   },
-
   // Lua
   "Lua.runtime.version": "Lua 5.4",
-  "Lua.runtime.nonstandardSymbol": ["+=", "-=", "*=", "/=", "//=", "&=", "|=", "^=", ">>=", "<<=", "||", "&&", "!"],
+  "Lua.runtime.nonstandardSymbol": [
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "//=",
+    "&=",
+    "|=",
+    "^=",
+    ">>=",
+    "<<=",
+    "||",
+    "&&",
+    "!"
+  ],
   "Lua.workspace.preloadFileSize": 1000,
   "Lua.workspace.library": [
     "/opt/homebrew/share/lua/5.4",
@@ -48,16 +62,17 @@
     "/usr/share/lua/5.4",
     "${workspaceFolder}/lua"
   ],
-  "Lua.diagnostics.disable": ["redefined-local"],
+  "Lua.diagnostics.disable": [
+    "redefined-local"
+  ],
   "Lua.diagnostics.globals": [
     "engine",
     "love"
   ],
-
   // Better word highlight
   "editor.wordBasedSuggestionsMode": "currentDocument",
   "[c]": {
-    "editor.wordBasedSuggestionsMode": "off"
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[lua]": {
     "editor.defaultFormatter": "sumneko.lua",
