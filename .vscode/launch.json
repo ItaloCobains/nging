@@ -11,6 +11,17 @@
       "preLaunchTask": "cmake: build"
     },
     {
+      "name": "Debug nging (Lua breakpoints)",
+      "type": "lua-local",
+      "request": "launch",
+      "program": {
+        "command": "${workspaceFolder}/build/nging"
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "cmake: build"
+    },
+    {
       "name": "C Debug (Linux GDB)",
       "type": "cppdbg",
       "request": "launch",

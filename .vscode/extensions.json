@@ -6,6 +6,7 @@
     "twxs.cmake",
     "sumneko.lua",
     "vadimcn.vscode-lldb",
+    "tomblind.local-lua-debugger-vscode",
     "eamodio.gitlens"
   ]
 }
