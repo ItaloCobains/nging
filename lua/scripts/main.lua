@@ -5,6 +5,8 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
   require("lldebugger").start()
 end
 
+package.path = package.path .. ";lua/?.lua"
+
 local game = require("scripts.game")
 
 engine.log("nging engine started")

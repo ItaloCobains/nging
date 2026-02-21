@@ -53,7 +53,7 @@ Engine *engine_create(void) {
     return NULL;
   }
 
-  if (lua_engine_run_script(L, "lua/scripts/main.lua") != 0) {
+  if (!lua_engine_run_script(L, "lua/scripts/main.lua")) {
     lua_engine_destroy(L);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
