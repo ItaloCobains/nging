@@ -1,0 +1,60 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "ms-vscode.cpptools",
+  "editor.rulers": [80, 120],
+  "files.associations": {
+    "*.h": "c"
+  },
+
+  // C/C++ IntelliSense
+  "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+  "C_Cpp.default.cStandard": "c11",
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+  "C_Cpp.autocomplete": "Default",
+  "C_Cpp.codeAnalysis.enabled": true,
+  "C_Cpp.codeAnalysis.runAutomatically": true,
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: LLVM, IndentWidth: 2, ColumnLimit: 100 }",
+  "C_Cpp.doxygen.generateOnType": true,
+
+  // Include paths for libraries
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/include",
+    "${workspaceFolder}/src",
+    "/usr/include/SDL2",
+    "/usr/include/lua5.4"
+  ],
+
+  // CMake
+  "cmake.sourceDirectory": "${workspaceFolder}",
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.configureOnOpen": true,
+  "cmake.configureEnvironment": {
+    "CMAKE_BUILD_TYPE": "Debug"
+  },
+
+  // Lua
+  "Lua.runtime.version": "Lua 5.4",
+  "Lua.runtime.nonstandardSymbol": ["+=", "-=", "*=", "/=", "//=", "&=", "|=", "^=", ">>=", "<<=", "||", "&&", "!"],
+  "Lua.workspace.preloadFileSize": 1000,
+  "Lua.workspace.library": [
+    "/usr/share/lua/5.4",
+    "${workspaceFolder}/lua"
+  ],
+  "Lua.diagnostics.disable": ["redefined-local"],
+  "Lua.diagnostics.globals": [
+    "engine",
+    "love"
+  ],
+
+  // Better word highlight
+  "editor.wordBasedSuggestionsMode": "currentDocument",
+  "[c]": {
+    "editor.wordBasedSuggestionsMode": "off"
+  },
+  "[lua]": {
+    "editor.defaultFormatter": "sumneko.lua",
+    "editor.formatOnSave": true
+  }
+}
