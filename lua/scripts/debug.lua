@@ -16,6 +16,9 @@ function debug.draw(game_state)
     return -- Skip if debug not enabled
   end
 
+  -- Load modules to access game state
+  local player = require("scripts.player")
+
   -- White debug text
   engine.set_draw_color(255, 255, 255, 255)
 
@@ -23,11 +26,11 @@ function debug.draw(game_state)
   engine.draw_text("DEBUG", 10, 10)
 
   -- Player position
-  engine.draw_text("Player: " .. math.floor(game_state.player.x) ..
-    "," .. math.floor(game_state.player.y), 10, 30)
+  engine.draw_text("Player: " .. math.floor(player.x) ..
+    "," .. math.floor(player.y), 10, 30)
 
   -- Player health
-  engine.draw_text("HP: " .. game_state.player.hp, 10, 50)
+  engine.draw_text("HP: " .. player.hp, 10, 50)
 
   -- Wave progress
   engine.draw_text("Wave: " .. game_state.wave, 10, 70)
