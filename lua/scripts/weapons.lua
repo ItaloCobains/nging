@@ -30,7 +30,7 @@ weapons.shotgun = {
     local spread = 0.25
 
     for i = -1, 1 do
-      local angle = math.atan2(dy, dx) + spread * i
+      local angle = math.atan(dy, dx) + spread * i
       local ndx = math.cos(angle)
       local ndy = math.sin(angle)
       bullets.add(px, py, ndx, ndy, {

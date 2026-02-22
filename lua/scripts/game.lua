@@ -1,5 +1,9 @@
---- Game state and update/draw callbacks.
+-- game.lua
+-- Core game loop, state management, and wave system
+-- Coordinates all game systems: player, enemies, bullets, particles, UI
+-- Handles collision detection, event dispatch, and game flow
 
+-- Load all required modules
 local player = require("scripts.player")
 local bullets = require("scripts.bullet")
 local enemies = require("scripts.enemy")
@@ -13,74 +17,114 @@ local debug = require("scripts.debug")
 local scores = require("scripts.scores")
 local config = require("scripts.config")
 
+-- Game state table
 local game = {
   title = "nging",
   version = "0.1.0",
-  score = 0,
-  game_over = false,
-  spawn_timer = 0,
-  spawn_interval = 2.0,
-  game_timer = 0,
-  active_weapon = nil,
-  fps = 0,
-  wave = 0,
-  wave_enemies_to_spawn = 0,
-  wave_enemies_left = 0,
-  in_wave_break = false,
-  wave_break_timer = 0,
+
+  -- Scoring and game status
+  score = 0,                         -- Current score (increases on enemy kills)
+  game_over = false,                 -- Game over flag
+
+  -- Wave system
+  wave = 0,                          -- Current wave number (1, 2, 3, ...)
+  wave_enemies_to_spawn = 0,         -- Enemies remaining to spawn this wave
+  wave_enemies_left = 0,             -- Enemies remaining to kill
+  in_wave_break = false,             -- Currently between waves
+  wave_break_timer = 0,              -- Countdown to next wave
+
+  -- Spawning
+  spawn_timer = 0,                   -- Time since last enemy spawn
+  spawn_interval = 2.0,              -- Seconds between spawns (decreases with score)
+
+  -- FPS and timing
+  fps = 0,                           -- Frames per second (exponential moving average)
+  game_timer = 0,                    -- Total game time
+
+  -- Weapon
+  active_weapon = nil,               -- Current weapon table
 }
 
+-- Advance to the next wave
+-- Calculates number of enemies for this wave and resets spawn timers
+-- Wave count increases: 5 (wave 1), 8 (wave 2), 11 (wave 3), etc.
+-- @usage: game.next_wave()
 function game.next_wave()
   game.wave = game.wave + 1
+  -- Formula: base enemies + (wave-1) * growth
+  -- Wave 1: 5 + 0*3 = 5
+  -- Wave 2: 5 + 1*3 = 8
+  -- Wave 3: 5 + 2*3 = 11
   local count = config.wave_enemy_base + (game.wave - 1) * config.wave_enemy_growth
-  game.wave_enemies_to_spawn = count
-  game.wave_enemies_left = count
+  game.wave_enemies_to_spawn = count     -- How many to spawn
+  game.wave_enemies_left = count         -- How many to kill
   game.in_wave_break = false
-  game.spawn_timer = 0
+  game.spawn_timer = 0                   -- Reset spawn timer
 end
 
+-- Main game update function - called once per frame
+-- Handles player input, entity updates, collisions, and wave progression
+-- @param dt (number) - Delta time in seconds
+-- @usage: Called by engine every frame: engine.update = game.update
 function game.update(dt)
+  -- Update input state (for edge detection like "just_pressed")
   input.update()
+
+  -- Calculate FPS using exponential moving average (smooth 60 FPS readout)
+  -- Formula: new_fps = old_fps * 0.9 + instant_fps * 0.1
   if dt > 0 then
     game.fps = game.fps * 0.9 + (1 / dt) * 0.1
   end
   game.game_timer = game.game_timer + dt
 
+  -- Handle pause toggle (ESC key)
   if input.just_pressed(engine.keys.ESCAPE) then
     pause.toggle()
   end
+
+  -- Handle debug overlay toggle (F1 key)
   if input.just_pressed(engine.keys.F1) then
     debug.visible = not debug.visible
   end
 
+  -- If paused, stop all game updates
   if pause.active then
     pause.draw()
-    return
+    return  -- Skip remaining updates
   end
 
+  -- If game over, only handle restart input
   if game.game_over then
     if input.just_pressed(engine.keys.SPACE) then
       game.restart_to_weapon_select()
     end
-    return
+    return  -- Don't update game state
   end
 
+  -- Update all game entities
   player.update(dt)
   bullets.update(dt)
   particle.update(dt)
   enemies.update(dt, player.x + player.width / 2, player.y + player.height / 2)
   powerup.update(dt, player)
 
+  -- Update camera to follow player
   camera.follow(player.x + player.width / 2, player.y + player.height / 2)
 
+  -- Wave system: spawn enemies or wait for break
   if game.in_wave_break then
+    -- Between waves: countdown to next wave
     game.wave_break_timer = game.wave_break_timer - dt
     if game.wave_break_timer <= 0 then
-      game.next_wave()
+      game.next_wave()  -- Start next wave
     end
   else
+    -- During wave: spawn enemies at interval
     game.spawn_timer = game.spawn_timer + dt
+    -- Spawn interval decreases with score (faster spawning at high scores)
+    -- Formula: 2.0 seconds at score 0, 1.0 seconds at score 100, min 0.5s
     game.spawn_interval = math.max(0.5, 2.0 - game.score * 0.02)
+
     if game.wave_enemies_to_spawn > 0 and game.spawn_timer >= game.spawn_interval then
       game.spawn_timer = 0
       game.spawn_enemy()
@@ -88,6 +132,7 @@ function game.update(dt)
     end
   end
 
+  -- Check all collision interactions
   game.check_collisions()
 end
 
@@ -160,39 +205,64 @@ function game.check_collisions()
   end
 end
 
+-- Setup event listeners for game events
+-- Called once at game.start() to wire up all event handlers
+-- @usage: game.setup_listeners()
 function game.setup_listeners()
+  -- Clear any old listeners from previous game
   event.clear()
 
+  -- Handle enemy death: award points, create particles, shake camera
   event.on("enemy_died", function(e)
+    -- Award points to player
     game.score = game.score + e.points
+
+    -- Create death burst particles
     particle.emit(e.x, e.y, {
       count = config.particle_count_death,
       color = {e.color.r, e.color.g, e.color.b},
       lifetime = config.particle_lifetime,
     })
+
+    -- Chance to drop power-up at death location
     powerup.try_drop(e.x, e.y)
+
+    -- Screen shake feedback
     camera.shake(config.shake_explosion.amplitude, config.shake_explosion.duration)
+
+    -- Play explosion sound
     engine.play_sound("explosion")
+
+    -- Track wave progress: decrement enemies left to kill
     game.wave_enemies_left = math.max(0, game.wave_enemies_left - 1)
+
+    -- Check if wave is complete (all spawned + all killed)
     if game.wave_enemies_left <= 0 and game.wave_enemies_to_spawn <= 0 and not game.in_wave_break then
+      -- Enter wave break: play wave fanfare
       game.in_wave_break = true
       game.wave_break_timer = config.wave_break_duration
       engine.play_sound("wave")
     end
   end)
 
+  -- Handle player damage: shake camera and play sound
   event.on("player_damaged", function(e)
+    -- Quick, intense shake
     camera.shake(config.shake_damage.amplitude, config.shake_damage.duration)
+    -- Damage sound
     engine.play_sound("damage")
   end)
 
+  -- Handle bullet impact: particles and sound
   event.on("bullet_hit", function(e)
+    -- Small spark particles at impact point
     particle.emit(e.x, e.y, {
       count = config.particle_count_hit,
-      color = {255, 200, 100},
+      color = {255, 200, 100},  -- Orange sparks
       lifetime = 0.2,
       size = 2,
     })
+    -- Impact sound
     engine.play_sound("hit")
   end)
 end
