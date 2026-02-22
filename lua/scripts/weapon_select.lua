@@ -1,17 +1,20 @@
 -- Weapon selection screen
 
 local weapons = require("scripts.weapons")
+local input = require("scripts.input")
 
 local weapon_select = {
   selected_index = 1,
+  best_score = 0,
 }
 
 function weapon_select.init()
   weapon_select.selected_index = 1
+  local scores = require("scripts.scores")
+  weapon_select.best_score = scores.top(1)[1] or 0
 end
 
 function weapon_select.update(dt)
-  local input = require("scripts.input")
   input.update()
 
   if input.just_pressed(engine.keys.UP) then
@@ -81,10 +84,8 @@ function weapon_select.draw()
   engine.set_draw_color(150, 150, 150, 255)
   engine.draw_text("PRESS SPACE TO CONFIRM", 240, 540)
 
-  local scores = require("scripts.scores")
-  local best = scores.top(1)[1] or 0
   engine.set_draw_color(200, 100, 100, 255)
-  engine.draw_text("BEST: " .. best, 320, 560)
+  engine.draw_text("BEST: " .. weapon_select.best_score, 320, 560)
 end
 
 return weapon_select

@@ -1,5 +1,7 @@
 -- Main menu screen
 
+local input = require("scripts.input")
+
 local menu = {
   blink_timer = 0,
   fading = false,
@@ -11,7 +13,6 @@ function menu.init()
 end
 
 function menu.update(dt)
-  local input = require("scripts.input")
   input.update()
 
   if menu.fading then
