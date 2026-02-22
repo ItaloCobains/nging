@@ -1,54 +1,94 @@
 --- Bullet projectile system
 
+local pool = require("scripts.pool")
+local event = require("scripts.event")
+
 local bullets = {
-  list = {},
-  speed = 400,
-  width = 8,
-  height = 8,
+  pool = pool.new(200, function()
+    return {
+      x = 0,
+      y = 0,
+      dx = 0,
+      dy = 0,
+      speed = 400,
+      color = {r = 255, g = 140, b = 0},
+      damage = 1,
+      piercing = false,
+      active = false,
+    }
+  end),
 }
 
-function bullets.add(x, y, dx, dy)
-  table.insert(bullets.list, {
-    x = x,
-    y = y,
-    dx = dx,
-    dy = dy,
-  })
+function bullets.add(x, y, dx, dy, opts)
+  opts = opts or {}
+  local bullet = bullets.pool:acquire()
+  bullet.x = x
+  bullet.y = y
+  bullet.dx = dx
+  bullet.dy = dy
+  bullet.speed = opts.speed or 400
+  bullet.color = opts.color or {r = 255, g = 140, b = 0}
+  bullet.damage = opts.damage or 1
+  bullet.piercing = opts.piercing or false
+  bullet.active = true
 end
 
 function bullets.update(dt)
-  local i = 1
-  while i <= #bullets.list do
-    local bullet = bullets.list[i]
-    bullet.x = bullet.x + bullet.dx * bullets.speed * dt
-    bullet.y = bullet.y + bullet.dy * bullets.speed * dt
+  local camera = require("scripts.camera")
+  bullets.pool:each(function(bullet)
+    bullet.x = bullet.x + bullet.dx * bullet.speed * dt
+    bullet.y = bullet.y + bullet.dy * bullet.speed * dt
 
-    if bullet.x < 0 or bullet.x > 800 or bullet.y < 0 or bullet.y > 600 then
-      table.remove(bullets.list, i)
-    else
-      i = i + 1
+    if bullet.x < -50 or bullet.x > camera.world_w + 50 or bullet.y < -50 or bullet.y > camera.world_h + 50 then
+      bullets.pool:release(bullet)
     end
-  end
+  end)
 end
 
 function bullets.draw()
-  for _, bullet in ipairs(bullets.list) do
-    local bx = math.floor(bullet.x)
-    local by = math.floor(bullet.y)
-
-    local w, h
-    if math.abs(bullet.dx) >= math.abs(bullet.dy) then
-      w, h = 14, 4
-    else
-      w, h = 4, 14
-    end
+  local camera = require("scripts.camera")
+  bullets.pool:each(function(bullet)
+    local bx, by = camera.to_screen(bullet.x, bullet.y)
+    bx = math.floor(bx)
+    by = math.floor(by)
+    local adx = math.abs(bullet.dx)
+    local ady = math.abs(bullet.dy)
 
     local glow_offset = 4
-    engine.set_draw_color(255, 140, 0, 80)
-    engine.draw_rect(bx - glow_offset, by - glow_offset, w + glow_offset * 2, h + glow_offset * 2)
+    engine.set_draw_color(bullet.color.r, bullet.color.g, bullet.color.b, 80)
 
-    engine.set_draw_color(255, 180, 0, 255)
-    engine.draw_rect(bx - (w - bullets.width) / 2, by - (h - bullets.height) / 2, w, h)
+    if adx > 0.65 and ady > 0.65 then
+      -- Diagonal: plasma ball (glow square + nucleus in cross)
+      engine.draw_rect(bx - glow_offset - 1, by - glow_offset - 1, 14, 14)
+      engine.set_draw_color(bullet.color.r, bullet.color.g, bullet.color.b, 255)
+      engine.draw_rect(bx - 1, by + 2, 10, 4)   -- horizontal bar
+      engine.draw_rect(bx + 2, by - 1, 4, 10)   -- vertical bar
+    elseif adx >= ady then
+      -- Horizontal: 14×4
+      engine.draw_rect(bx - glow_offset, by - glow_offset, 14 + glow_offset * 2, 4 + glow_offset * 2)
+      engine.set_draw_color(bullet.color.r, bullet.color.g, bullet.color.b, 255)
+      engine.draw_rect(bx - 3, by - 2, 14, 4)
+    else
+      -- Vertical: 4×14
+      engine.draw_rect(bx - glow_offset, by - glow_offset, 4 + glow_offset * 2, 14 + glow_offset * 2)
+      engine.set_draw_color(bullet.color.r, bullet.color.g, bullet.color.b, 255)
+      engine.draw_rect(bx - 2, by - 3, 4, 14)
+    end
+  end)
+end
+
+function bullets.get_all()
+  local result = {}
+  bullets.pool:each(function(bullet)
+    table.insert(result, bullet)
+  end)
+  return result
+end
+
+function bullets.hit(bullet)
+  event.emit("bullet_hit", {x = bullet.x, y = bullet.y})
+  if not bullet.piercing then
+    bullets.pool:release(bullet)
   end
 end
 

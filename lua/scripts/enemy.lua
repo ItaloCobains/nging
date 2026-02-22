@@ -1,73 +1,200 @@
 --- Enemy AI system
 
+local pool = require("scripts.pool")
+local event = require("scripts.event")
+
 local enemies = {
-  list = {},
-  speed = 80,
-  width = 22,
-  height = 22,
+  pool = pool.new(100, function()
+    return {
+      x = 0,
+      y = 0,
+      hp = 1,
+      speed = 80,
+      w = 22,
+      h = 22,
+      points = 1,
+      color = {r = 220, g = 60, b = 60},
+      type_name = "basic",
+      anim_timer = 0,
+      dir_x = 0,
+      dir_y = 0,
+      zigzag_phase = 0,
+      active = false,
+    }
+  end),
 }
 
-function enemies.spawn(x, y)
-  table.insert(enemies.list, {
-    x = x,
-    y = y,
+enemies.types = {
+  basic = {
     hp = 1,
-  })
+    speed = 80,
+    width = 22,
+    height = 22,
+    points = 1,
+    color = { r = 220, g = 60, b = 60 },
+  },
+  scout = {
+    hp = 1,
+    speed = 150,
+    width = 16,
+    height = 16,
+    points = 2,
+    color = { r = 255, g = 165, b = 0 },
+  },
+  tank = {
+    hp = 3,
+    speed = 50,
+    width = 30,
+    height = 30,
+    points = 5,
+    color = { r = 150, g = 50, b = 200 },
+  },
+  zigzagger = {
+    hp = 1,
+    speed = 120,
+    width = 18,
+    height = 18,
+    points = 3,
+    color = { r = 50, g = 200, b = 100 },
+  },
+}
+
+function enemies.spawn(x, y, type_name)
+  type_name = type_name or "basic"
+  local type_def = enemies.types[type_name]
+
+  local enemy = enemies.pool:acquire()
+  enemy.x = x
+  enemy.y = y
+  enemy.hp = type_def.hp
+  enemy.speed = type_def.speed
+  enemy.w = type_def.width
+  enemy.h = type_def.height
+  enemy.points = type_def.points
+  enemy.color = type_def.color
+  enemy.type_name = type_name
+  enemy.anim_timer = math.random() * math.pi * 2
+  enemy.dir_x = 0
+  enemy.dir_y = 0
+  enemy.zigzag_phase = 0
+  enemy.active = true
 end
 
 function enemies.update(dt, px, py)
-  local i = 1
-  while i <= #enemies.list do
-    local enemy = enemies.list[i]
+  enemies.pool:each(function(enemy)
     local dx = px - enemy.x
     local dy = py - enemy.y
     local len = math.sqrt(dx * dx + dy * dy)
 
+    local dx_norm = 0
+    local dy_norm = 0
     if len > 0 then
-      dx = dx / len
-      dy = dy / len
+      dx_norm = dx / len
+      dy_norm = dy / len
     end
 
-    enemy.x = enemy.x + dx * enemies.speed * dt
-    enemy.y = enemy.y + dy * enemies.speed * dt
+    enemy.x = enemy.x + dx_norm * enemy.speed * dt
+    enemy.y = enemy.y + dy_norm * enemy.speed * dt
+
+    if enemy.type_name == "zigzagger" and len > 0 then
+      local perp_x = -dy_norm
+      local perp_y = dx_norm
+      enemy.zigzag_phase = enemy.zigzag_phase + 3.0 * dt
+      enemy.x = enemy.x + perp_x * math.sin(enemy.zigzag_phase) * 60 * dt
+      enemy.y = enemy.y + perp_y * math.sin(enemy.zigzag_phase) * 60 * dt
+    end
+
+    enemy.dir_x = dx_norm
+    enemy.dir_y = dy_norm
+    enemy.anim_timer = enemy.anim_timer + dt
 
     if enemy.hp <= 0 then
-      table.remove(enemies.list, i)
-    else
-      i = i + 1
+      event.emit("enemy_died", {x = enemy.x, y = enemy.y, type = enemy.type_name, points = enemy.points, color = enemy.color})
+      enemies.pool:release(enemy)
     end
-  end
+  end)
 end
 
 function enemies.draw()
-  for _, enemy in ipairs(enemies.list) do
-    local ex = math.floor(enemy.x)
-    local ey = math.floor(enemy.y)
+  local camera = require("scripts.camera")
+  enemies.pool:each(function(enemy)
+    if not camera.is_visible(enemy.x, enemy.y, enemy.w, enemy.h) then
+      return
+    end
 
-    -- Left antenna
-    engine.set_draw_color(200, 40, 40, 255)
-    engine.draw_rect(ex + 4, ey - 5, 3, 6)
+    local ex, ey = camera.to_screen(enemy.x, enemy.y)
+    ex = math.floor(ex)
+    ey = math.floor(ey)
 
-    -- Right antenna
-    engine.set_draw_color(200, 40, 40, 255)
-    engine.draw_rect(ex + 15, ey - 5, 3, 6)
+    local t = enemy.anim_timer
+    local bob = math.floor(math.sin(t * 4) * 1.5)
+    local ant_sway = math.floor(math.sin(t * 5) * 2)
+    local eye_size = 4 + (math.floor(math.abs(math.sin(t * 3))) > 0.5 and 1 or 0)
 
-    -- Head
-    engine.set_draw_color(220, 60, 60, 255)
-    engine.draw_rect(ex + 5, ey + 0, 12, 8)
+    local ey_anim = ey + bob
+    local col = enemy.color
 
-    -- Left eye
-    engine.set_draw_color(255, 220, 50, 255)
-    engine.draw_rect(ex + 5, ey + 2, 4, 4)
+    if enemy.type_name == "basic" or enemy.type_name == "scout" then
+      -- Left antenna (sways right)
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      engine.draw_rect(ex + 4 + ant_sway, ey_anim - 5, 3, 6)
 
-    -- Right eye
-    engine.set_draw_color(255, 220, 50, 255)
-    engine.draw_rect(ex + 13, ey + 2, 4, 4)
+      -- Right antenna (sways left)
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      engine.draw_rect(ex + 15 - ant_sway, ey_anim - 5, 3, 6)
 
-    -- Body
-    engine.set_draw_color(200, 40, 40, 255)
-    engine.draw_rect(ex + 2, ey + 6, 18, 12)
-  end
+      -- Head
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      engine.draw_rect(ex + 5, ey_anim + 0, 12, 8)
+
+      -- Left eye (with pulse)
+      engine.set_draw_color(255, 220, 50, 255)
+      engine.draw_rect(ex + 5, ey_anim + 2, eye_size, eye_size)
+
+      -- Right eye (with pulse)
+      engine.set_draw_color(255, 220, 50, 255)
+      engine.draw_rect(ex + 13, ey_anim + 2, eye_size, eye_size)
+
+      -- Body
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      engine.draw_rect(ex + 2, ey_anim + 6, 18, 12)
+
+    elseif enemy.type_name == "tank" then
+      -- Tank: simple filled square
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      engine.draw_rect(ex + 2, ey + 2, enemy.w - 4, enemy.h - 4)
+      engine.set_draw_color(col.r + 40, col.g + 40, col.b, 255)
+      engine.draw_rect_outline(ex, ey, enemy.w, enemy.h)
+
+      -- HP bar above tank
+      engine.set_draw_color(100, 50, 50, 255)
+      engine.draw_rect(ex + 0, ey - 8, 30, 4)
+      local hp_ratio = enemy.hp / 3
+      engine.set_draw_color(0, 255, 0, 255)
+      engine.draw_rect(ex + 0, ey - 8, math.floor(30 * hp_ratio), 4)
+
+    elseif enemy.type_name == "zigzagger" then
+      -- Zigzagger: diamond shape
+      engine.set_draw_color(col.r, col.g, col.b, 255)
+      local half_w = enemy.w / 2
+      local half_h = enemy.h / 2
+      engine.draw_rect(ex + half_w - 3, ey - half_h + 2, 6, half_h - 2)
+      engine.draw_rect(ex - half_w + 2, ey + 2, half_w - 2, half_h - 4)
+      engine.draw_rect(ex + half_w, ey + 2, half_w - 2, half_h - 4)
+    end
+  end)
+end
+
+function enemies.get_all()
+  local result = {}
+  enemies.pool:each(function(enemy)
+    table.insert(result, enemy)
+  end)
+  return result
+end
+
+function enemies.clear()
+  enemies.pool:clear()
 end
 
 return enemies

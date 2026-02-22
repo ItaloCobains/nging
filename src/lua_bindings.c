@@ -1,13 +1,68 @@
 #include "engine/lua_bindings.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 #include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 static SDL_Renderer *s_renderer;
 static TTF_Font *s_font = NULL;
+
+static Mix_Chunk *s_sounds[6] = {0};
+
+static Mix_Chunk *generate_sine_wave(int freq, int duration_ms, int amplitude) {
+  int sample_rate = 44100;
+  int num_samples = (sample_rate * duration_ms) / 1000;
+  int16_t *samples = (int16_t *)malloc(num_samples * sizeof(int16_t));
+
+  double phase_increment = 2.0 * 3.14159265359 * freq / sample_rate;
+  double phase = 0.0;
+  double decay_factor = 1.0;
+  double decay_per_sample = pow(0.01, 1.0 / num_samples);
+
+  for (int i = 0; i < num_samples; i++) {
+    int16_t sample = (int16_t)(sin(phase) * amplitude * decay_factor);
+    samples[i] = sample;
+    phase += phase_increment;
+    decay_factor *= decay_per_sample;
+  }
+
+  Mix_Chunk *chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
+  chunk->allocated = 1;
+  chunk->abuf = (Uint8 *)samples;
+  chunk->alen = num_samples * sizeof(int16_t);
+  chunk->volume = MIX_MAX_VOLUME;
+
+  return chunk;
+}
+
+static Mix_Chunk *generate_white_noise(int duration_ms, int amplitude) {
+  int sample_rate = 44100;
+  int num_samples = (sample_rate * duration_ms) / 1000;
+  int16_t *samples = (int16_t *)malloc(num_samples * sizeof(int16_t));
+
+  double decay_factor = 1.0;
+  double decay_per_sample = pow(0.01, 1.0 / num_samples);
+
+  for (int i = 0; i < num_samples; i++) {
+    int16_t sample = (int16_t)((rand() % (2 * amplitude)) - amplitude) * decay_factor;
+    samples[i] = sample;
+    decay_factor *= decay_per_sample;
+  }
+
+  Mix_Chunk *chunk = (Mix_Chunk *)malloc(sizeof(Mix_Chunk));
+  chunk->allocated = 1;
+  chunk->abuf = (Uint8 *)samples;
+  chunk->alen = num_samples * sizeof(int16_t);
+  chunk->volume = MIX_MAX_VOLUME;
+
+  return chunk;
+}
 
 static int l_engine_log(lua_State *L) {
   const char *msg = luaL_checkstring(L, 1);
@@ -123,6 +178,33 @@ static int l_engine_draw_rect_outline(lua_State *L) {
   return 0;
 }
 
+static int l_engine_play_sound(lua_State *L) {
+  const char *name = luaL_checkstring(L, 1);
+  int sound_idx = -1;
+
+  if (strcmp(name, "shoot") == 0) sound_idx = 0;
+  else if (strcmp(name, "hit") == 0) sound_idx = 1;
+  else if (strcmp(name, "explosion") == 0) sound_idx = 2;
+  else if (strcmp(name, "pickup") == 0) sound_idx = 3;
+  else if (strcmp(name, "damage") == 0) sound_idx = 4;
+  else if (strcmp(name, "wave") == 0) sound_idx = 5;
+
+  if (sound_idx >= 0 && sound_idx < 6 && s_sounds[sound_idx]) {
+    Mix_PlayChannel(-1, s_sounds[sound_idx], 0);
+  }
+
+  return 0;
+}
+
+static int l_engine_set_sfx_volume(lua_State *L) {
+  double v = luaL_checknumber(L, 1);
+  int vol = (int)(v * 128);
+  if (vol < 0) vol = 0;
+  if (vol > 128) vol = 128;
+  Mix_Volume(-1, vol);
+  return 0;
+}
+
 void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   s_renderer = renderer;
 
@@ -130,6 +212,13 @@ void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   if (TTF_Init() == -1) {
     fprintf(stderr, "TTF_Init error: %s\n", TTF_GetError());
   }
+
+  s_sounds[0] = generate_sine_wave(880, 50, 20000);
+  s_sounds[1] = generate_sine_wave(440, 50, 20000);
+  s_sounds[2] = generate_white_noise(120, 20000);
+  s_sounds[3] = generate_sine_wave(440, 80, 20000);
+  s_sounds[4] = generate_sine_wave(220, 80, 20000);
+  s_sounds[5] = generate_sine_wave(440, 200, 20000);
 
   lua_newtable(L);
   lua_pushcfunction(L, l_engine_log);
@@ -150,6 +239,10 @@ void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   lua_setfield(L, -2, "is_key_down");
   lua_pushcfunction(L, l_engine_get_mouse_pos);
   lua_setfield(L, -2, "get_mouse_pos");
+  lua_pushcfunction(L, l_engine_play_sound);
+  lua_setfield(L, -2, "play_sound");
+  lua_pushcfunction(L, l_engine_set_sfx_volume);
+  lua_setfield(L, -2, "set_sfx_volume");
 
   lua_newtable(L);
   lua_pushinteger(L, SDL_SCANCODE_W);
@@ -170,6 +263,10 @@ void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   lua_setfield(L, -2, "RIGHT");
   lua_pushinteger(L, SDL_SCANCODE_SPACE);
   lua_setfield(L, -2, "SPACE");
+  lua_pushinteger(L, SDL_SCANCODE_ESCAPE);
+  lua_setfield(L, -2, "ESCAPE");
+  lua_pushinteger(L, SDL_SCANCODE_F1);
+  lua_setfield(L, -2, "F1");
   lua_setfield(L, -2, "keys");
 
   lua_setglobal(L, "engine");

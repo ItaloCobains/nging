@@ -2,6 +2,7 @@
 #include "engine/lua_bindings.h"
 #include "engine/time.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <lua.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -21,8 +22,14 @@ extern void lua_engine_call_update(lua_State *L, double dt);
 extern void lua_engine_call_draw(lua_State *L);
 
 Engine *engine_create(void) {
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO) != 0) {
     fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
+    return NULL;
+  }
+
+  if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 512) != 0) {
+    fprintf(stderr, "Mix_OpenAudio error: %s\n", Mix_GetError());
+    SDL_Quit();
     return NULL;
   }
 
@@ -86,6 +93,8 @@ void engine_destroy(Engine *e) {
   SDL_DestroyRenderer(e->renderer);
   SDL_DestroyWindow(e->window);
   free(e);
+  Mix_CloseAudio();
+  Mix_Quit();
   SDL_Quit();
 }
 
@@ -95,8 +104,6 @@ bool engine_run(Engine *e) {
   while (e->running) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_QUIT)
-        e->running = false;
-      if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
         e->running = false;
     }
 

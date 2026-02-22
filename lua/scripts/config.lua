@@ -1,0 +1,17 @@
+return {
+  world_w = 1600,
+  world_h = 1200,
+  view_w = 800,
+  view_h = 600,
+  player_speed = 200,
+  player_hp = 3,
+  powerup_drop_chance = 0.15,
+  wave_enemy_base = 5,
+  wave_enemy_growth = 3,
+  wave_break_duration = 4.0,
+  shake_damage = { amplitude = 6, duration = 0.3 },
+  shake_explosion = { amplitude = 3, duration = 0.15 },
+  particle_count_death = 12,
+  particle_count_hit = 4,
+  particle_lifetime = 0.4,
+}
