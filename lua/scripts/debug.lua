@@ -40,8 +40,11 @@ function debug.draw(game_state)
   -- Wave progress
   engine.draw_text("Wave: " .. game_state.wave, x_pos, y_start + 60)
 
+  -- Enemies remaining to spawn
+  engine.draw_text("Spawn left: " .. game_state.wave_enemies_to_spawn, x_pos, y_start + 80)
+
   -- Enemies remaining to kill
-  engine.draw_text("Enemies left: " .. game_state.wave_enemies_left, x_pos, y_start + 80)
+  engine.draw_text("Kill left: " .. game_state.wave_enemies_left, x_pos, y_start + 100)
 end
 
 return debug
