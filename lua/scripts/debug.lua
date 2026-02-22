@@ -9,6 +9,7 @@ debug.visible = false -- F toggles this
 
 -- Render debug information
 -- Shows development info when visible (F enabled)
+-- Positioned in bottom-right corner of screen
 -- @param game_state (table) - Game object with state variables
 -- @usage: debug.draw(game)  -- Called from game.draw() if debug.visible
 function debug.draw(game_state)
@@ -22,21 +23,25 @@ function debug.draw(game_state)
   -- White debug text
   engine.set_draw_color(255, 255, 255, 255)
 
+  -- Bottom-right corner positioning (viewport is 800x600)
+  local y_start = 520  -- Near bottom of screen
+  local x_pos = 600    -- Right side of screen
+
   -- Header
-  engine.draw_text("DEBUG", 10, 10)
+  engine.draw_text("DEBUG", x_pos, y_start)
 
   -- Player position
   engine.draw_text("Player: " .. math.floor(player.x) ..
-    "," .. math.floor(player.y), 10, 30)
+    "," .. math.floor(player.y), x_pos, y_start + 20)
 
   -- Player health
-  engine.draw_text("HP: " .. player.hp, 10, 50)
+  engine.draw_text("HP: " .. player.hp, x_pos, y_start + 40)
 
   -- Wave progress
-  engine.draw_text("Wave: " .. game_state.wave, 10, 70)
+  engine.draw_text("Wave: " .. game_state.wave, x_pos, y_start + 60)
 
   -- Enemies remaining to kill
-  engine.draw_text("Enemies left: " .. game_state.wave_enemies_left, 10, 90)
+  engine.draw_text("Enemies left: " .. game_state.wave_enemies_left, x_pos, y_start + 80)
 end
 
 return debug
