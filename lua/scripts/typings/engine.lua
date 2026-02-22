@@ -56,6 +56,8 @@ function engine.get_mouse_pos() end
 ---@field LEFT number
 ---@field RIGHT number
 ---@field SPACE number
+---@field ESCAPE number
+---@field F number
 engine.keys = {}
 
 ---Called every frame by the C loop.
@@ -64,3 +66,9 @@ function engine.update(dt) end
 
 ---Called every frame by the C loop.
 function engine.draw() end
+
+---@param volume number
+function engine.set_sfx_volume(volume) end
+
+---@param name string
+function engine.play_sound(name) end

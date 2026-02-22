@@ -2,34 +2,39 @@
 -- Player character controller, health system, and weapon firing
 -- Handles movement, collision box, animation, and power-up effects
 
+---Weapon table from scripts.weapons (name, shoot_interval, fire, etc.)
+---@class Weapon
+---@field name string
+---@field shoot_interval number
+---@field fire function
 local player = {
   -- Position and dimensions
-  x = 800,              -- World X position
-  y = 600,              -- World Y position
-  width = 24,           -- Collision box width
-  height = 24,          -- Collision box height
+  x = 800,     -- World X position
+  y = 600,     -- World Y position
+  width = 24,  -- Collision box width
+  height = 24, -- Collision box height
 
   -- Movement
-  vx = 0,               -- Current X velocity
-  vy = 0,               -- Current Y velocity
-  speed = 200,          -- Movement speed (px/s)
-  is_moving = false,    -- True if moving this frame
-  facing = 1,           -- Direction: 1 (right) or -1 (left)
+  vx = 0,            -- Current X velocity
+  vy = 0,            -- Current Y velocity
+  speed = 200,       -- Movement speed (px/s)
+  is_moving = false, -- True if moving this frame
+  facing = 1,        -- Direction: 1 (right) or -1 (left)
 
   -- Health and damage
-  hp = 3,               -- Current health (1-3)
-  shielded = false,     -- Shield active (absorb 1 damage)
+  hp = 3,           -- Current health (1-3)
+  shielded = false, -- Shield active (absorb 1 damage)
 
   -- Shooting
-  active_weapon = nil,  -- Current weapon table
-  shoot_cooldown = 0,   -- Remaining cooldown (seconds)
-  base_shoot_interval = 0.15,  -- Default shoot interval
+  active_weapon = nil, ---@type Weapon?  Current weapon table
+  shoot_cooldown = 0,         -- Remaining cooldown (seconds)
+  base_shoot_interval = 0.15, -- Default shoot interval
 
   -- Power-up effects
-  rapid_timer = 0,      -- Remaining rapid fire time (seconds)
+  rapid_timer = 0, -- Remaining rapid fire time (seconds)
 
   -- Animation
-  anim_timer = 0,       -- Walking animation timer
+  anim_timer = 0, -- Walking animation timer
 }
 
 -- Update player state each frame
@@ -43,7 +48,9 @@ function player.update(dt)
     if player.rapid_timer <= 0 then
       player.rapid_timer = 0
       -- Restore normal fire rate when rapid expires
-      player.active_weapon.shoot_interval = player.base_shoot_interval
+      if player.active_weapon then
+        player.active_weapon.shoot_interval = player.base_shoot_interval
+      end
     end
   end
 
@@ -53,16 +60,16 @@ function player.update(dt)
 
   -- Handle movement input (WASD)
   if engine.is_key_down(engine.keys.W) then
-    player.vy = -player.speed  -- Up
+    player.vy = -player.speed -- Up
   end
   if engine.is_key_down(engine.keys.S) then
-    player.vy = player.speed   -- Down
+    player.vy = player.speed -- Down
   end
   if engine.is_key_down(engine.keys.A) then
-    player.vx = -player.speed  -- Left
+    player.vx = -player.speed -- Left
   end
   if engine.is_key_down(engine.keys.D) then
-    player.vx = player.speed   -- Right
+    player.vx = player.speed -- Right
   end
 
   -- Apply velocity to position
@@ -80,7 +87,7 @@ function player.update(dt)
     player.facing = player.vx > 0 and 1 or -1
   end
   if player.is_moving then
-    player.anim_timer = player.anim_timer + dt  -- Animate walking
+    player.anim_timer = player.anim_timer + dt -- Animate walking
   end
 
   -- Check for shooting input and cooldown
@@ -93,7 +100,7 @@ end
 -- @usage: player.check_shoot(0.016)
 function player.check_shoot(dt)
   if not player.active_weapon then
-    return  -- No weapon selected
+    return -- No weapon selected
   end
 
   -- Decrement cooldown timer
@@ -132,7 +139,7 @@ function player.check_shoot(dt)
 
     -- Reset cooldown to weapon's shoot interval
     player.shoot_cooldown = player.active_weapon.shoot_interval
-    engine.play_sound("shoot")  -- Play gunshot sound
+    engine.play_sound("shoot") -- Play gunshot sound
   end
 end
 
@@ -193,7 +200,7 @@ function player.take_damage()
 
   -- Emit event for screen shake, particles, etc.
   local event = require("scripts.event")
-  event.emit("player_damaged", {x = player.x, y = player.y})
+  event.emit("player_damaged", { x = player.x, y = player.y })
 end
 
 -- Reset player to initial state

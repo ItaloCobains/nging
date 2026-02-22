@@ -23,26 +23,26 @@ local game = {
   version = "0.1.0",
 
   -- Scoring and game status
-  score = 0,                         -- Current score (increases on enemy kills)
-  game_over = false,                 -- Game over flag
+  score = 0,         -- Current score (increases on enemy kills)
+  game_over = false, -- Game over flag
 
   -- Wave system
-  wave = 0,                          -- Current wave number (1, 2, 3, ...)
-  wave_enemies_to_spawn = 0,         -- Enemies remaining to spawn this wave
-  wave_enemies_left = 0,             -- Enemies remaining to kill
-  in_wave_break = false,             -- Currently between waves
-  wave_break_timer = 0,              -- Countdown to next wave
+  wave = 0,                  -- Current wave number (1, 2, 3, ...)
+  wave_enemies_to_spawn = 0, -- Enemies remaining to spawn this wave
+  wave_enemies_left = 0,     -- Enemies remaining to kill
+  in_wave_break = false,     -- Currently between waves
+  wave_break_timer = 0,      -- Countdown to next wave
 
   -- Spawning
-  spawn_timer = 0,                   -- Time since last enemy spawn
-  spawn_interval = 2.0,              -- Seconds between spawns (decreases with score)
+  spawn_timer = 0,      -- Time since last enemy spawn
+  spawn_interval = 2.0, -- Seconds between spawns (decreases with score)
 
   -- FPS and timing
-  fps = 0,                           -- Frames per second (exponential moving average)
-  game_timer = 0,                    -- Total game time
+  fps = 0,        -- Frames per second (exponential moving average)
+  game_timer = 0, -- Total game time
 
   -- Weapon
-  active_weapon = nil,               -- Current weapon table
+  active_weapon = nil, -- Current weapon table
 }
 
 -- Advance to the next wave
@@ -56,10 +56,10 @@ function game.next_wave()
   -- Wave 2: 5 + 1*3 = 8
   -- Wave 3: 5 + 2*3 = 11
   local count = config.wave_enemy_base + (game.wave - 1) * config.wave_enemy_growth
-  game.wave_enemies_to_spawn = count     -- How many to spawn
-  game.wave_enemies_left = count         -- How many to kill
+  game.wave_enemies_to_spawn = count -- How many to spawn
+  game.wave_enemies_left = count     -- How many to kill
   game.in_wave_break = false
-  game.spawn_timer = 0                   -- Reset spawn timer
+  game.spawn_timer = 0               -- Reset spawn timer
 end
 
 -- Main game update function - called once per frame
@@ -82,15 +82,15 @@ function game.update(dt)
     pause.toggle()
   end
 
-  -- Handle debug overlay toggle (F1 key)
-  if input.just_pressed(engine.keys.F1) then
+  -- Handle debug overlay toggle (F key)
+  if input.just_pressed(engine.keys.F) then
     debug.visible = not debug.visible
   end
 
   -- If paused, stop all game updates
   if pause.active then
     pause.draw()
-    return  -- Skip remaining updates
+    return -- Skip remaining updates
   end
 
   -- If game over, only handle restart input
@@ -98,7 +98,7 @@ function game.update(dt)
     if input.just_pressed(engine.keys.SPACE) then
       game.restart_to_weapon_select()
     end
-    return  -- Don't update game state
+    return -- Don't update game state
   end
 
   -- Update all game entities
@@ -116,7 +116,7 @@ function game.update(dt)
     -- Between waves: countdown to next wave
     game.wave_break_timer = game.wave_break_timer - dt
     if game.wave_break_timer <= 0 then
-      game.next_wave()  -- Start next wave
+      game.next_wave() -- Start next wave
     end
   else
     -- During wave: spawn enemies at interval
@@ -179,7 +179,7 @@ function game.check_collisions()
     for _, enemy in ipairs(enemy_list) do
       if not enemy.active then goto continue_enemies end
       if game.aabb(bullet.x, bullet.y, BULLET_HITBOX, BULLET_HITBOX,
-                   enemy.x, enemy.y, enemy.w, enemy.h) then
+            enemy.x, enemy.y, enemy.w, enemy.h) then
         enemy.hp = enemy.hp - bullet.damage
         hit = true
       end
@@ -194,7 +194,7 @@ function game.check_collisions()
   for _, enemy in ipairs(enemy_list) do
     if not enemy.active then goto continue_enemy_collision end
     if game.aabb(player.x, player.y, player.width, player.height,
-                 enemy.x, enemy.y, enemy.w, enemy.h) then
+          enemy.x, enemy.y, enemy.w, enemy.h) then
       player.take_damage()
       enemies.pool:release(enemy)
       if player.hp <= 0 then
@@ -220,7 +220,7 @@ function game.setup_listeners()
     -- Create death burst particles
     particle.emit(e.x, e.y, {
       count = config.particle_count_death,
-      color = {e.color.r, e.color.g, e.color.b},
+      color = { e.color.r, e.color.g, e.color.b },
       lifetime = config.particle_lifetime,
     })
 
@@ -258,7 +258,7 @@ function game.setup_listeners()
     -- Small spark particles at impact point
     particle.emit(e.x, e.y, {
       count = config.particle_count_hit,
-      color = {255, 200, 100},  -- Orange sparks
+      color = { 255, 200, 100 }, -- Orange sparks
       lifetime = 0.2,
       size = 2,
     })

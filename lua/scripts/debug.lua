@@ -1,19 +1,19 @@
 -- debug.lua
 -- Debug overlay for development information display
--- Toggled with F1 key
+-- Toggled with F key
 
 local debug = {}
 
 -- Debug visibility state
-debug.visible = false  -- F1 toggles this
+debug.visible = false -- F toggles this
 
 -- Render debug information
--- Shows development info when visible (F1 enabled)
+-- Shows development info when visible (F enabled)
 -- @param game_state (table) - Game object with state variables
 -- @usage: debug.draw(game)  -- Called from game.draw() if debug.visible
 function debug.draw(game_state)
   if not debug.visible then
-    return  -- Skip if debug not enabled
+    return -- Skip if debug not enabled
   end
 
   -- White debug text
@@ -24,7 +24,7 @@ function debug.draw(game_state)
 
   -- Player position
   engine.draw_text("Player: " .. math.floor(game_state.player.x) ..
-                   "," .. math.floor(game_state.player.y), 10, 30)
+    "," .. math.floor(game_state.player.y), 10, 30)
 
   -- Player health
   engine.draw_text("HP: " .. game_state.player.hp, 10, 50)

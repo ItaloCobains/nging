@@ -348,8 +348,8 @@ void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   lua_setfield(L, -2, "SPACE");
   lua_pushinteger(L, SDL_SCANCODE_ESCAPE);
   lua_setfield(L, -2, "ESCAPE");
-  lua_pushinteger(L, SDL_SCANCODE_F1);
-  lua_setfield(L, -2, "F1");
+  lua_pushinteger(L, SDL_SCANCODE_F);
+  lua_setfield(L, -2, "F");
   lua_setfield(L, -2, "keys");
 
   lua_setglobal(L, "engine");
