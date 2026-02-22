@@ -91,17 +91,24 @@ end
 -- Shows colored square with first letter of type
 -- @usage: powerup.draw()
 function powerup.draw()
+  local camera = require("scripts.camera")
+
   for _, pu in ipairs(powerup.list) do
     local typ = powerup.types[pu.type]
 
+    -- Convert world position to screen position
+    local sx, sy = camera.to_screen(pu.x, pu.y)
+    sx = math.floor(sx)
+    sy = math.floor(sy)
+
     -- Draw colored square (14×14)
     engine.set_draw_color(typ.color[1], typ.color[2], typ.color[3], 255)
-    engine.draw_rect(math.floor(pu.x - 7), math.floor(pu.y - 7), 14, 14)
+    engine.draw_rect(sx - 7, sy - 7, 14, 14)
 
     -- Draw first letter (H, R, or S)
     local letter = string.sub(pu.type, 1, 1):upper()
     engine.set_draw_color(0, 0, 0, 255)  -- Black text
-    engine.draw_text(letter, math.floor(pu.x - 3), math.floor(pu.y - 5))
+    engine.draw_text(letter, sx - 3, sy - 5)
   end
 end
 

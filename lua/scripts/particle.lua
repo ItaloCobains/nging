@@ -99,14 +99,21 @@ end
 -- Alpha fades from opaque to transparent based on remaining lifetime
 -- @usage: particle.draw()
 function particle.draw()
+  local camera = require("scripts.camera")
+
   particle_pool:each(function(p)
+    -- Convert world position to screen position
+    local sx, sy = camera.to_screen(p.x, p.y)
+    sx = math.floor(sx)
+    sy = math.floor(sy)
+
     -- Calculate alpha: full opacity when just born, transparent when dying
     -- Ratio: 1.0 = fresh, 0.0 = expired
     local ratio = p.life / p.max_life
     -- Alpha 0-255 based on remaining lifetime
     engine.set_draw_color(p.r, p.g, p.b, math.floor(255 * ratio))
     -- Draw small square
-    engine.draw_rect(math.floor(p.x), math.floor(p.y), p.size, p.size)
+    engine.draw_rect(sx, sy, p.size, p.size)
   end)
 end
 
