@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Main function.
+ * @param argc The number of arguments.
+ * @param argv The arguments.
+ * @return EXIT_SUCCESS if successful, EXIT_FAILURE otherwise.
+ */
 int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;

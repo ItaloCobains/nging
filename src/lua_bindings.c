@@ -1,12 +1,12 @@
 #include "engine/lua_bindings.h"
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,6 +15,13 @@ static TTF_Font *s_font = NULL;
 
 static Mix_Chunk *s_sounds[6] = {0};
 
+/**
+ * @brief Generate a sine wave.
+ * @param freq The frequency.
+ * @param duration_ms The duration in milliseconds.
+ * @param amplitude The amplitude.
+ * @return The Mix_Chunk.
+ */
 static Mix_Chunk *generate_sine_wave(int freq, int duration_ms, int amplitude) {
   int sample_rate = 44100;
   int num_samples = (sample_rate * duration_ms) / 1000;
@@ -41,6 +48,12 @@ static Mix_Chunk *generate_sine_wave(int freq, int duration_ms, int amplitude) {
   return chunk;
 }
 
+/**
+ * @brief Generate a white noise.
+ * @param duration_ms The duration in milliseconds.
+ * @param amplitude The amplitude.
+ * @return The Mix_Chunk.
+ */
 static Mix_Chunk *generate_white_noise(int duration_ms, int amplitude) {
   int sample_rate = 44100;
   int num_samples = (sample_rate * duration_ms) / 1000;
@@ -50,7 +63,8 @@ static Mix_Chunk *generate_white_noise(int duration_ms, int amplitude) {
   double decay_per_sample = pow(0.01, 1.0 / num_samples);
 
   for (int i = 0; i < num_samples; i++) {
-    int16_t sample = (int16_t)((rand() % (2 * amplitude)) - amplitude) * decay_factor;
+    int16_t sample =
+        (int16_t)((rand() % (2 * amplitude)) - amplitude) * decay_factor;
     samples[i] = sample;
     decay_factor *= decay_per_sample;
   }
@@ -64,12 +78,22 @@ static Mix_Chunk *generate_white_noise(int duration_ms, int amplitude) {
   return chunk;
 }
 
+/**
+ * @brief Log a message.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_log(lua_State *L) {
   const char *msg = luaL_checkstring(L, 1);
   printf("[lua] %s\n", msg);
   return 0;
 }
 
+/**
+ * @brief Clear the screen.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_clear(lua_State *L) {
   (void)L;
   Uint8 r = (Uint8)luaL_checkinteger(L, 1);
@@ -81,6 +105,11 @@ static int l_engine_clear(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Set the draw color.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_set_draw_color(lua_State *L) {
   Uint8 r = (Uint8)luaL_checkinteger(L, 1);
   Uint8 g = (Uint8)luaL_checkinteger(L, 2);
@@ -90,6 +119,11 @@ static int l_engine_set_draw_color(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Draw a rectangle.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_draw_rect(lua_State *L) {
   int x = (int)luaL_checkinteger(L, 1);
   int y = (int)luaL_checkinteger(L, 2);
@@ -100,6 +134,11 @@ static int l_engine_draw_rect(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Check if a key is down.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_is_key_down(lua_State *L) {
   int scancode = (int)luaL_checkinteger(L, 1);
   const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -107,6 +146,11 @@ static int l_engine_is_key_down(lua_State *L) {
   return 1;
 }
 
+/**
+ * @brief Get the mouse position.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_get_mouse_pos(lua_State *L) {
   int x, y;
   SDL_GetMouseState(&x, &y);
@@ -115,6 +159,11 @@ static int l_engine_get_mouse_pos(lua_State *L) {
   return 2;
 }
 
+/**
+ * @brief Set the font.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_set_font(lua_State *L) {
   const char *path = luaL_checkstring(L, 1);
   int size = (int)luaL_checkinteger(L, 2);
@@ -132,6 +181,11 @@ static int l_engine_set_font(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Draw text.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_draw_text(lua_State *L) {
   const char *text = luaL_checkstring(L, 1);
   int x = (int)luaL_checkinteger(L, 2);
@@ -153,7 +207,8 @@ static int l_engine_draw_text(lua_State *L) {
   SDL_Texture *texture = SDL_CreateTextureFromSurface(s_renderer, surface);
   if (texture == NULL) {
     SDL_FreeSurface(surface);
-    return luaL_error(L, "SDL_CreateTextureFromSurface error: %s", SDL_GetError());
+    return luaL_error(L, "SDL_CreateTextureFromSurface error: %s",
+                      SDL_GetError());
   }
 
   int width, height;
@@ -168,6 +223,11 @@ static int l_engine_draw_text(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Draw a rectangle outline.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_draw_rect_outline(lua_State *L) {
   int x = (int)luaL_checkinteger(L, 1);
   int y = (int)luaL_checkinteger(L, 2);
@@ -178,16 +238,27 @@ static int l_engine_draw_rect_outline(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Play a sound.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_play_sound(lua_State *L) {
   const char *name = luaL_checkstring(L, 1);
   int sound_idx = -1;
 
-  if (strcmp(name, "shoot") == 0) sound_idx = 0;
-  else if (strcmp(name, "hit") == 0) sound_idx = 1;
-  else if (strcmp(name, "explosion") == 0) sound_idx = 2;
-  else if (strcmp(name, "pickup") == 0) sound_idx = 3;
-  else if (strcmp(name, "damage") == 0) sound_idx = 4;
-  else if (strcmp(name, "wave") == 0) sound_idx = 5;
+  if (strcmp(name, "shoot") == 0)
+    sound_idx = 0;
+  else if (strcmp(name, "hit") == 0)
+    sound_idx = 1;
+  else if (strcmp(name, "explosion") == 0)
+    sound_idx = 2;
+  else if (strcmp(name, "pickup") == 0)
+    sound_idx = 3;
+  else if (strcmp(name, "damage") == 0)
+    sound_idx = 4;
+  else if (strcmp(name, "wave") == 0)
+    sound_idx = 5;
 
   if (sound_idx >= 0 && sound_idx < 6 && s_sounds[sound_idx]) {
     Mix_PlayChannel(-1, s_sounds[sound_idx], 0);
@@ -196,15 +267,27 @@ static int l_engine_play_sound(lua_State *L) {
   return 0;
 }
 
+/**
+ * @brief Set the SFX volume.
+ * @param L The Lua state.
+ * @return 0.
+ */
 static int l_engine_set_sfx_volume(lua_State *L) {
   double v = luaL_checknumber(L, 1);
   int vol = (int)(v * 128);
-  if (vol < 0) vol = 0;
-  if (vol > 128) vol = 128;
+  if (vol < 0)
+    vol = 0;
+  if (vol > 128)
+    vol = 128;
   Mix_Volume(-1, vol);
   return 0;
 }
 
+/**
+ * @brief Register the Lua bindings.
+ * @param L The Lua state.
+ * @param renderer The SDL renderer.
+ */
 void engine_lua_register_bindings(lua_State *L, struct SDL_Renderer *renderer) {
   s_renderer = renderer;
 

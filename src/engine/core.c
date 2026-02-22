@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Engine structure.
+ */
 struct Engine {
   SDL_Window *window;
   SDL_Renderer *renderer;
@@ -21,6 +24,10 @@ extern int lua_engine_run_script(lua_State *L, const char *path);
 extern void lua_engine_call_update(lua_State *L, double dt);
 extern void lua_engine_call_draw(lua_State *L);
 
+/**
+ * @brief Create a new engine.
+ * @return The engine or NULL if failed.
+ */
 Engine *engine_create(void) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO) != 0) {
     fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
@@ -86,6 +93,10 @@ Engine *engine_create(void) {
   return e;
 }
 
+/**
+ * @brief Destroy the engine.
+ * @param e The engine.
+ */
 void engine_destroy(Engine *e) {
   if (!e)
     return;
@@ -98,6 +109,11 @@ void engine_destroy(Engine *e) {
   SDL_Quit();
 }
 
+/**
+ * @brief Run the engine.
+ * @param e The engine.
+ * @return True if successful, false otherwise.
+ */
 bool engine_run(Engine *e) {
   SDL_Event event;
 
