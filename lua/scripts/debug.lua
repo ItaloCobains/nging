@@ -24,8 +24,8 @@ function debug.draw(game_state)
   engine.set_draw_color(255, 255, 255, 255)
 
   -- Bottom-right corner positioning (viewport is 800x600)
-  local y_start = 520  -- Near bottom of screen
-  local x_pos = 600    -- Right side of screen
+  local y_start = 460  -- Near bottom of screen, moved up to fit all lines
+  local x_pos = 550    -- Right side of screen, moved left slightly
 
   -- Header
   engine.draw_text("DEBUG", x_pos, y_start)
