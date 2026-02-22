@@ -121,9 +121,13 @@ function game.update(dt)
   else
     -- During wave: spawn enemies at interval
     game.spawn_timer = game.spawn_timer + dt
-    -- Spawn interval decreases with score (faster spawning at high scores)
-    -- Formula: 2.0 seconds at score 0, 1.0 seconds at score 100, min 0.5s
-    game.spawn_interval = math.max(0.5, 2.0 - game.score * 0.02)
+    -- Spawn interval decreases with both wave progression and score
+    -- Wave factor: each wave is ~8% faster (1.0 -> 0.92 -> 0.84...)
+    -- Score factor: higher scores make spawning faster (reduces interval)
+    -- Formula: starts at 2.0s, gets faster as wave and score increase, min 0.2s
+    local wave_factor = math.max(0.1, 1.0 - (game.wave - 1) * 0.08)
+    local score_factor = 1.0 - math.min(0.5, game.score * 0.005)
+    game.spawn_interval = math.max(0.2, 2.0 * wave_factor * score_factor)
 
     if game.wave_enemies_to_spawn > 0 and game.spawn_timer >= game.spawn_interval then
       game.spawn_timer = 0
