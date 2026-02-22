@@ -196,6 +196,16 @@ function game.check_collisions()
     if game.aabb(player.x, player.y, player.width, player.height,
           enemy.x, enemy.y, enemy.w, enemy.h) then
       player.take_damage()
+
+      -- Emit enemy_died event to handle wave progression
+      event.emit("enemy_died", {
+        x = enemy.x,
+        y = enemy.y,
+        type = enemy.type_name,
+        points = enemy.points,
+        color = enemy.color,
+      })
+
       enemies.pool:release(enemy)
       if player.hp <= 0 then
         game.game_over = true
